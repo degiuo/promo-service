@@ -1,0 +1,34 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Копируем package.json и package-lock.json
+COPY package*.json ./
+
+# Устанавливаем зависимости
+RUN npm ci --only=production
+
+# Копируем исходный код
+COPY . .
+
+# Компилируем TypeScript
+RUN npm run build
+
+# Создаем пользователя для безопасности
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nestjs -u 1001
+
+# Меняем владельца файлов
+RUN chown -R nestjs:nodejs /app
+
+USER nestjs
+
+# Открываем порт
+EXPOSE 3000
+
+# Настройки окружения
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Команда запуска
+CMD ["npm", "run", "start:prod"] 
